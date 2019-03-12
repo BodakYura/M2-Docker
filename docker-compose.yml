@@ -1,0 +1,45 @@
+version: '3.3'
+
+services:
+    nginx:
+        image: nginx:latest
+        container_name: nginx
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - ./Nginx/core:/etc/nginx/conf.d
+            - ./Nginx/www:/var/www:delegated
+            - ./Nginx/Logs:/var/log/nginx/
+            - ./Nginx/html:/usr/share/nginx/html/
+        links:
+            - php
+
+    mysqldb:
+        image: mysql:5.7.22
+        container_name: mysql
+        restart: always
+        environment:
+            - MYSQL_DATABASE=m2
+            - MYSQL_ROOT_PASSWORD=root
+            - MYSQL_USER=root
+            - MYSQL_PASSWORD=root
+        ports:
+            - "8989:3306"
+        volumes:
+            - ./data/db/mysql:/var/lib/mysql
+            - ./Nginx/www:/var/www
+
+    php:
+        build: ./PHP
+        container_name: php-fpm
+        volumes:
+            - ./Nginx/www:/var/www:delegated
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: phpmyadmin
+        ports:
+            - 8090:80
+        links:
+            - mysqldb:db
